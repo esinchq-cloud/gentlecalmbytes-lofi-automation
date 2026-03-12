@@ -1,34 +1,36 @@
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+name: Run Orchestrator
 
-def upload(video_path, title, description, tags=None, privacy="private"):
-    # Load OAuth credentials written by GitHub Actions
-    creds = Credentials.from_authorized_user_file(
-        "client_secret.json",
-        ["https://www.googleapis.com/auth/youtube.upload"]
-    )
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Task to run"
+        required: true
+        default: "test"
 
-    youtube = build("youtube", "v3", credentials=creds)
+jobs:
+  run-orchestrator:
+    runs-on: ubuntu-latest
 
-    request_body = {
-        "snippet": {
-            "title": title,
-            "description": description,
-            "tags": tags or []
-        },
-        "status": {
-            "privacyStatus": privacy
-        }
-    }
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    media = MediaFileUpload(video_path, chunksize=-1, resumable=True)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    request = youtube.videos().insert(
-        part="snippet,status",
-        body=request_body,
-        media_body=media
-    )
+      - name: Install YouTube API dependencies
+        run: |
+          pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
 
-    response = request.execute()
-    return response
+      - name: Add repo to PYTHONPATH
+        run: echo "PYTHONPATH=$PYTHONPATH:${{ github.workspace }}" >> $GITHUB_ENV
+
+      - name: Write YouTube credentials
+        run: |
+          echo '${{ secrets.YOUTUBE_CLIENT_SECRET }}' > client_secret.json
+
+      - name: Run orchestrator with task
+        run: python agents/orchestrator.py "${{ github.event.inputs.task }}"
