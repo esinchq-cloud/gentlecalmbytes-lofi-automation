@@ -2,6 +2,11 @@ name: Run Orchestrator
 
 on:
   workflow_dispatch:
+    inputs:
+      task:
+        description: "Which task should the orchestrator run?"
+        required: true
+        default: "test"
 
 jobs:
   run-orchestrator:
@@ -15,6 +20,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Run orchestrator
-        run: python agents/orchestrator.py
+          
+      - name: Run orchestrator with task
+        run: python agents/orchestrator.py "${{ github.event.inputs.task }}"
