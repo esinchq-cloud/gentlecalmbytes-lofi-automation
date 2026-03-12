@@ -23,6 +23,9 @@ jobs:
 
       - name: Add repo to PYTHONPATH
         run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
+ 
+      - name: Write YouTube credentials
+        run: echo "${{ secrets.YOUTUBE_CLIENT_SECRET }}" > client_secret.json
 
       - name: Run orchestrator with task
         run: python agents/orchestrator.py "${{ github.event.inputs.task }}"
