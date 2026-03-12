@@ -17,13 +17,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses:actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      - name: Install YouTube API dependencies
+        run: |
+          pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+
       - name: Add repo to PYTHONPATH
         run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
- 
+
       - name: Write YouTube credentials
         run: echo "${{ secrets.YOUTUBE_CLIENT_SECRET }}" > client_secret.json
 
